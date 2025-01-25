@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 import { faker } from "@faker-js/faker";
 import { prisma } from "@/lib/prisma";
 
@@ -19,28 +17,25 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: Request) {
   try {
-    const { name, email, password } = await request.json();
+    const { name, email, photoURL, authId } = await request.json();
 
-    if (!name || !email || !password) {
+    if (!name || !email || !authId) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    const { user } = await createUserWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
-    await updateProfile(user, { displayName: name });
-
-    const userData = await prisma.user.create({
-      data: {
-        authId: user.uid,
+    const userData = await prisma.user.upsert({
+      where: {
+        authId: authId,
+      },
+      update: {},
+      create: {
+        authId: authId,
         email: email,
         name: name,
-        photoURL: user.photoURL || faker.image.urlLoremFlickr(),
+        photoURL: photoURL || faker.image.urlLoremFlickr(),
         createdAt: new Date().toISOString(),
         lastSeen: new Date().toISOString(),
       },

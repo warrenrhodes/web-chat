@@ -1,12 +1,12 @@
 "use client";
-import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
+import { useAuthStore } from "@/hooks/auth-store";
 import { MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 
 export default function Home() {
-  const { user } = useAuth();
+  const { user, logout } = useAuthStore();
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
@@ -35,10 +35,10 @@ export default function Home() {
                 variant="outline"
                 className="bg-primary text-primary-foreground"
               >
-                <Link href="/login">Login</Link>
+                <Link href="/sign-in">Login</Link>
               </Button>
               <Button variant="outline" asChild>
-                <Link href="/register">Register</Link>
+                <Link href="/sign-up">Register</Link>
               </Button>
             </div>
           )}

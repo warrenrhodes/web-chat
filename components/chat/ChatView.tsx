@@ -1,9 +1,8 @@
 "use client";
 
-import React, { Suspense } from "react";
+import React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useAuth } from "@/components/providers/auth-provider";
+import { useSearchParams } from "next/navigation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AppSidebar } from "@/components/layout/Index";
 import {
@@ -20,23 +19,14 @@ import ChatHeader from "@/components/chat/ChatHeader";
 import MessageInput from "@/components/chat/MessageInput";
 import LoadingFallback from "@/components/chat/Loading";
 import { ChatMessage } from "@/components/chat/ChatMessage";
+import { useAuthStore } from "@/hooks/auth-store";
 
 export const dynamic = "force-dynamic";
 
-export default function Chat() {
-  return (
-    <Suspense fallback={<LoadingFallback />}>
-      <ChatContent />
-    </Suspense>
-  );
-}
-
-const ChatContent = () => {
+export default function ChatView() {
   const abortControllerRef = useRef<AbortController | null>(null);
   const searchParams = useSearchParams();
   const userIdSelected = searchParams.get("user");
-  const [selectedUser, setSelectedUser] =
-    useState<Prisma.UserGetPayload<{}> | null>(null);
   const [messages, setMessages] = useState<Prisma.MessageGetPayload<{}>[]>([]);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
@@ -45,37 +35,16 @@ const ChatContent = () => {
     string | null
   >(null);
 
-  const { user, loading } = useAuth();
-  const router = useRouter();
+  const { user, logout, loading, chatWithUser, setChatWithUser } =
+    useAuthStore();
+
   const newMessageRef = useRef<HTMLInputElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const previousChatIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login");
-    }
-  }, [user, loading, router]);
-
-  useEffect(() => {
-    if (!user || !userIdSelected) return;
-
-    const fetchUser = async () => {
-      try {
-        const response = await fetch(`/api/users/${userIdSelected}`);
-        const user = await response.json();
-        setSelectedUser(user);
-      } catch (error) {
-        console.error("Failed to fetch user:", error);
-      }
-    };
-
-    fetchUser();
-  }, [user, userIdSelected]);
-
-  useEffect(() => {
-    if (!user || !selectedUser) return;
+    if (!user || !chatWithUser) return;
 
     const findOrCreateChat = async () => {
       try {
@@ -83,7 +52,7 @@ const ChatContent = () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            participants: [user.uid, selectedUser.authId],
+            participants: [user.uid, chatWithUser.authId],
           }),
         });
         const data: IChat = await response.json();
@@ -99,7 +68,7 @@ const ChatContent = () => {
     };
 
     findOrCreateChat();
-  }, [user, selectedUser]);
+  }, [user, chatWithUser]);
 
   useEffect(() => {
     if (userIdSelected) {
@@ -109,7 +78,7 @@ const ChatContent = () => {
       setMessages([]);
       setEditingMessageId(null);
       setCurrentChatId(null);
-      setSelectedUser(null);
+      setChatWithUser(null);
 
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
@@ -286,7 +255,6 @@ const ChatContent = () => {
     <NewSideBar>
       <div className="flex flex-col h-[calc(100vh-4rem)]">
         <ChatHeader
-          selectedUser={selectedUser}
           isSearching={isSearching}
           setIsSearching={setIsSearching}
           chatId={currentChatId}
@@ -294,7 +262,7 @@ const ChatContent = () => {
         />
 
         <div className="flex-grow overflow-hidden flex flex-col">
-          {!selectedUser ? (
+          {!chatWithUser ? (
             <div className="p-4 flex items-center justify-center h-full w-full">
               Select a conversation
             </div>
@@ -323,7 +291,7 @@ const ChatContent = () => {
           )}
         </div>
 
-        {selectedUser && (
+        {chatWithUser && (
           <MessageInput
             onSubmit={onSubmit}
             editingMessageId={editingMessageId}
@@ -334,7 +302,7 @@ const ChatContent = () => {
       </div>
     </NewSideBar>
   );
-};
+}
 
 const NewSideBar = ({
   children,

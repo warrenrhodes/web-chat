@@ -2,11 +2,10 @@ import { Search } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { UserInfo } from "@/components/layout/UserInfo";
 import { Button } from "../ui/button";
-import { Prisma } from "@prisma/client";
 import SearchBar from "./SearchBar";
+import { useAuthStore } from "@/hooks/auth-store";
 
 interface ChatHeaderProps {
-  selectedUser: Prisma.UserGetPayload<{}> | null;
   isSearching: boolean;
   setIsSearching: (value: boolean) => void;
   chatId: string | null;
@@ -14,12 +13,12 @@ interface ChatHeaderProps {
 }
 
 export const ChatHeader = ({
-  selectedUser,
   isSearching,
   setIsSearching,
   chatId,
   onMessageSelect,
 }: ChatHeaderProps) => {
+  const { chatWithUser } = useAuthStore();
   return (
     <div className="bg-white p-4 relative flex-shrink-0 z-10">
       <AnimatePresence>
@@ -36,16 +35,16 @@ export const ChatHeader = ({
             exit={{ opacity: 0 }}
             className="flex justify-between items-center"
           >
-            {selectedUser && (
+            {chatWithUser && (
               <UserInfo
                 user={{
-                  avatar: selectedUser?.photoURL ?? "",
-                  email: selectedUser?.email ?? "",
-                  name: selectedUser?.name ?? "",
+                  avatar: chatWithUser?.photoURL ?? "",
+                  email: chatWithUser?.email ?? "",
+                  name: chatWithUser?.name ?? "",
                 }}
               />
             )}
-            {selectedUser && (
+            {chatWithUser && (
               <Button
                 variant="ghost"
                 size="icon"

@@ -1,11 +1,9 @@
-version: "3.8"
-
 services:
   mongo:
     build:
       context: .
-      dockerfile: Dockerfile
-    container_name: mongodb-replicaset
+      dockerfile: MongoDockerFile.yml
+    container_name: chatty-replicaset
     restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: chatty
@@ -15,12 +13,13 @@ services:
       - 27017:27017
     command: --replSet rs0 --keyFile /etc/mongo-keyfile --bind_ip_all --port 27017
     healthcheck:
-      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'127.0.0.1:27017'}]}) }" | mongosh --port 27017 -u naturegift -p naturegift --authenticationDatabase admin naturegift-store
+      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'127.0.0.1:27017'}]}) }" | mongosh --port 27017 -u chatty -p chatty --authenticationDatabase admin chatty-store
       interval: 5s
       timeout: 15s
       start_period: 15s
       retries: 10
     volumes:
-      - mongodb_data:/data/db
-    networks:
-      - chatty-network
+      - chatty_data:/data/db
+
+volumes:
+  chatty_data:

@@ -7,27 +7,29 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
-import Link from "next/link";
+import { User } from "@prisma/client";
+import { useAuthStore } from "@/hooks/auth-store";
 
 export function MainNav({
   items,
 }: {
   items: {
-    title: string;
-    url: string;
+    user: User;
     isActive?: boolean;
   }[];
 }) {
+  const { setChatWithUser } = useAuthStore();
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Conversations</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
-          <SidebarMenuSubItem key={item.title} className="mb-3">
-            <SidebarMenuSubButton asChild>
-              <Link href={item.url} className="p-3">
-                <span>{item.title}</span>
-              </Link>
+          <SidebarMenuSubItem key={item.user.name} className="mb-3">
+            <SidebarMenuSubButton
+              onClick={() => setChatWithUser(item.user)}
+              className="cursor-pointer"
+            >
+              <span>{item.user.name}</span>
             </SidebarMenuSubButton>
           </SidebarMenuSubItem>
         ))}

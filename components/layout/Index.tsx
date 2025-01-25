@@ -11,19 +11,17 @@ import {
   Sidebar,
 } from "../ui/sidebar";
 import { UserInfo } from "./UserInfo";
-import { auth } from "@/lib/firebase";
 import { Button } from "../ui/button";
 import { MainNav } from "./MainNav";
 import { useCallback, useEffect, useState } from "react";
-import { useAuth } from "../providers/auth-provider";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Prisma } from "@prisma/client";
+import { useAuthStore } from "@/hooks/auth-store";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user: currentUserr, logout } = useAuth();
+  const { user: currentUser, logout } = useAuthStore();
   const [users, setUsers] = useState<Prisma.UserGetPayload<{}>[]>([]);
-  const { signOut, currentUser } = auth;
   const router = useRouter();
 
   const fetchUsers = useCallback(async () => {
@@ -34,8 +32,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       return;
     }
 
-    setUsers(data.filter((user: any) => user.authId !== currentUserr?.uid));
-  }, [currentUserr?.uid]);
+    setUsers(data.filter((user: any) => user.authId !== currentUser?.uid));
+  }, [currentUser?.uid]);
 
   useEffect(() => {
     fetchUsers();
@@ -62,19 +60,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <MainNav
           items={users.map((user) => ({
-            title: user.name,
+            user: user,
             isActive: false,
-            url: `/chat?user=${user.id}`,
           }))}
         />
       </SidebarContent>
       <SidebarFooter>
-        {currentUserr && (
+        {currentUser && (
           <UserInfo
             user={{
-              name: currentUserr?.displayName || currentUserr?.email || "",
-              email: currentUserr?.email || "",
-              avatar: currentUserr?.photoURL || "",
+              name: currentUser?.displayName || currentUser?.email || "",
+              email: currentUser?.email || "",
+              avatar: currentUser?.photoURL || "",
             }}
           />
         )}
@@ -85,9 +82,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <Button
                   type="button"
                   onClick={async () => {
-                    console.log("signing out");
                     await logout();
-                    // router.replace("/");
                   }}
                   variant="ghost"
                   className="flex items-start gap-3 w-full justify-start"

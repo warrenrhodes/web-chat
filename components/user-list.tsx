@@ -5,8 +5,8 @@ import { User } from "@/types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
-import { useAuth } from "./providers/auth-provider";
 import { DatabaseDocument, getDocumentId } from "@spreeloop/database";
+import { useAuthStore } from "@/hooks/auth-store";
 
 interface UserListProps {
   onSelectUser: (user: User) => void;
@@ -14,7 +14,7 @@ interface UserListProps {
 
 export default function UserList({ onSelectUser }: UserListProps) {
   const [users, setUsers] = useState<User[]>([]);
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, logout } = useAuthStore();
 
   const fetchUsers = useCallback(async () => {
     const response = await fetch("/api/users");
