@@ -251,6 +251,10 @@ export default function ChatView() {
     return <LoadingFallback />;
   }
 
+  messages.sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  );
+
   return (
     <NewSideBar>
       <div className="flex flex-col h-[calc(100vh-4rem)]">

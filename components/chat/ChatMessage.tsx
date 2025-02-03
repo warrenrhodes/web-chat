@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Prisma } from "@prisma/client";
 import { motion } from "framer-motion";
 import MessageActions from "./MessageActions";
+import { format } from "date-fns";
 
 interface ChatMessageProps {
   message: Prisma.MessageGetPayload<{}>;
@@ -51,6 +52,9 @@ export const ChatMessage = ({
             {message.isEdited && (
               <div className="text-xs italic mt-1">(edited)</div>
             )}
+            <div className="text-xs text-muted-foreground mt-1 flex items-end justify-end">
+              {format(new Date(message.createdAt), "hh:mm a")}
+            </div>
           </div>
         </div>
       </Card>

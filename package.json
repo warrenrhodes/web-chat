@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "docker-compose up chattyStore -d && npm run prisma:generate && next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "export": "next export",
-    "prisma:generate": "prisma generate"
+    "prisma:generate": "prisma migrate dev --name init && prisma generate"
   },
   "dependencies": {
     "@faker-js/faker": "^9.3.0",

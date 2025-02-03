@@ -1,25 +1,26 @@
 services:
-  mongo:
-    build:
-      context: .
-      dockerfile: MongoDockerFile.yml
-    container_name: chatty-replicaset
-    restart: always
+  chattyStore:
+    image: postgres:15
+    container_name: postgres-chatty
     environment:
-      MONGO_INITDB_ROOT_USERNAME: chatty
-      MONGO_INITDB_ROOT_PASSWORD: chatty
-      MONGO_INITDB_DATABASE: chatty-store
+      POSTGRES_USER: chatty
+      POSTGRES_PASSWORD: chatty
+      POSTGRES_DB: chatty-store
     ports:
-      - 27017:27017
-    command: --replSet rs0 --keyFile /etc/mongo-keyfile --bind_ip_all --port 27017
-    healthcheck:
-      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'127.0.0.1:27017'}]}) }" | mongosh --port 27017 -u chatty -p chatty --authenticationDatabase admin chatty-store
-      interval: 5s
-      timeout: 15s
-      start_period: 15s
-      retries: 10
+      - "5432:5432"
     volumes:
-      - chatty_data:/data/db
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - nature-gift-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chatty -d chatty-store"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
-  chatty_data:
+  postgres_data: {}
+
+networks:
+  nature-gift-network:
+    driver: bridge
